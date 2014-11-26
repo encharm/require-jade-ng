@@ -14,6 +14,6 @@ dist/jade.js:
 
 dist: dist/jade.js dist/jade-compiler.js
 
-test: test/main.js jade.js jade-compiler.js
+test: all test/main.js jade.js jade-compiler.js
 	cd test && node r.js -o buildConfig.js
 	@echo "Go to test directory, start a web server and open index.html / index-built.html"

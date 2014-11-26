@@ -15,14 +15,24 @@ define('fs.jade', function() {
   return fsXhrSync;
 });
 
-var jade = (function(exports) {
+var jadeRuntime = (function(exports) {
   //< include jade/lib/runtime.js | replace require('fs') require('fs.jade')
 });
 
-define('jade-runtime', jade);
+define('jade-runtime', jadeRuntime);
+
 
 define({
-    version: '0.0.1',
+    version: '1.0.0',
+    compile: function(str, locals, cb) {
+      require(['jade-compiler'], function(jadeCompiler) {
+        try {
+          cb(null, jadeCompiler.compile(str, locals));
+        } catch(err) {
+          cb(err);
+        }
+      });
+    },
     write: function (pluginName, name, write) {
         if (name in buildMap) {
             var text = buildMap[name];
@@ -40,7 +50,7 @@ define({
         getCompiler = function(cb) {
           cb(require.nodeRequire('./jade-compiler'));
         }
-      } else {
+      } else{
         fs = fsXhrSync;
         getCompiler = function(cb) {
           require(['jade-compiler'], function(jadeCompiler) {
@@ -64,6 +74,6 @@ define({
         });
       });
     }
-});
+  });
 
 })();

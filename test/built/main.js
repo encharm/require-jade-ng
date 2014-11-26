@@ -15,7 +15,7 @@ define('fs.jade', [],function() {
   return fsXhrSync;
 });
 
-var jade = (function(exports) {
+var jadeRuntime = (function(exports) {
   
 
 /**
@@ -250,10 +250,20 @@ exports.rethrow = function rethrow(err, filename, lineno, str){
 };
 });
 
-define('jade-runtime', jade);
+define('jade-runtime', jadeRuntime);
+
 
 define('jade',{
-    version: '0.0.1',
+    version: '1.0.0',
+    compile: function(str, locals, cb) {
+      require(['jade-compiler'], function(jadeCompiler) {
+        try {
+          cb(null, jadeCompiler.compile(str, locals));
+        } catch(err) {
+          cb(err);
+        }
+      });
+    },
     write: function (pluginName, name, write) {
         if (name in buildMap) {
             var text = buildMap[name];
@@ -271,7 +281,7 @@ define('jade',{
         getCompiler = function(cb) {
           cb(require.nodeRequire('./jade-compiler'));
         }
-      } else {
+      } else{
         fs = fsXhrSync;
         getCompiler = function(cb) {
           require(['jade-compiler'], function(jadeCompiler) {
@@ -295,7 +305,7 @@ define('jade',{
         });
       });
     }
-});
+  });
 
 })();
 
@@ -307,7 +317,9 @@ var jade_interp;
 buf.push("<h1>Hello world</h1>Hurrah");;return buf.join("");
 }});
 
-define('main',['require','jade!body'],function(require) {
+define('main',['require','jade!body','jade'],function(require) {
   var body = require('jade!body');
+  var jade = require('jade');
+
   document.body.innerHTML = body();
 });
