@@ -27,7 +27,9 @@ var fsXhr = {
 };
 
 define('fs.jade', function() {
-  return fsXhr;
+  if(typeof XMLHttpRequest !== 'undefined')
+    return fsXhr;
+  return require('fs');
 });
 
 var jadeRuntime = (function(exports) {
@@ -303,7 +305,7 @@ define({
           }
         };
       } else{
-        fs = fsXhr;
+        fs = require.nodeRequire ? require.nodeRequire('fs') : fsXhr;
         getCompiler = function(cb) {
           require(['jade-compiler'], function(jadeCompiler) {
             cb(jadeCompiler);

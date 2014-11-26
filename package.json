@@ -1,0 +1,31 @@
+{
+  "name": "require-jade-ng",
+  "version": "1.0.0",
+  "description": "jade plugin for require.js that will follow upstream easily",
+  "main": "jade-node.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/encharm/require-jade-ng.git"
+  },
+  "author": "Damian Kaczmarek <rush@rushbase.net>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/encharm/require-jade-ng/issues"
+  },
+  "homepage": "https://github.com/encharm/require-jade-ng",
+  "devDependencies": {
+    "chai": "^1.10.0",
+    "mocha": "^2.0.1",
+    "node-static": "^0.7.6",
+    "phantom": "^0.7.0"
+  },
+  "dependencies": {
+    "requirejs": "^2.1.15"
+  }
+}

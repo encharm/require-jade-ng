@@ -27,7 +27,9 @@ var fsXhr = {
 };
 
 define('fs.jade', function() {
-  return fsXhr;
+  if(typeof XMLHttpRequest !== 'undefined')
+    return fsXhr;
+  return require('fs');
 });
 
 var jadeRuntime = (function(exports) {
@@ -49,10 +51,10 @@ define({
       });
     },
     write: function (pluginName, name, write) {
-        if (name in buildMap) {
-            var text = buildMap[name];
-            write("define('"+pluginName+"!"+name+"', ['jade-runtime'], function(jade){ return " + text + "});\n");
-        }
+      if (name in buildMap) {
+        var text = buildMap[name];
+        write("define('"+pluginName+"!"+name+"', ['jade-runtime'], function(jade){ return " + text + "});\n");
+      }
     },
     load: function (name, req, onload, config) {
       var url = req.toUrl(name + '.jade');
@@ -72,7 +74,7 @@ define({
           }
         };
       } else{
-        fs = fsXhr;
+        fs = require.nodeRequire ? require.nodeRequire('fs') : fsXhr;
         getCompiler = function(cb) {
           require(['jade-compiler'], function(jadeCompiler) {
             cb(jadeCompiler);
