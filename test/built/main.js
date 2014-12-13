@@ -15,7 +15,7 @@ var fsXhr = {
     xhr.send();
     xhr.onreadystatechange = function (aEvt) {
       if (xhr.readyState == 4) {
-        if(xhr.status == 200) {
+        if(xhr.status == 200 || xhr.status == 0) {
           cb(null, xhr.response);
         } else {
           cb(new Error("Got status code " + xhr.status));
@@ -30,7 +30,7 @@ define('fs.jade', [],function() {
   return fsXhr;
 });
 
-var jadeRuntime = (function(exports) {
+var jadeRuntime = (function(require, exports, module) {
   
 
 /**
@@ -267,6 +267,10 @@ exports.rethrow = function rethrow(err, filename, lineno, str){
 
 define('jade-runtime', jadeRuntime);
 
+function patchText(text) {
+  return text.replace(/^function template\(locals\) {\n/, 'function template(locals, attrs) { locals = attrs || locals;\n');
+}
+
 
 define('jade',{
     version: '1.0.0',
@@ -280,10 +284,10 @@ define('jade',{
       });
     },
     write: function (pluginName, name, write) {
-        if (name in buildMap) {
-            var text = buildMap[name];
-            write("define('"+pluginName+"!"+name+"', ['jade-runtime'], function(jade){ return " + text + "});\n");
-        }
+      if (name in buildMap) {
+        var text = buildMap[name];
+        write("define('"+pluginName+"!"+name+"', ['jade-runtime'], function(jade){ return " + text + "});\n");
+      }
     },
     load: function (name, req, onload, config) {
       var url = req.toUrl(name + '.jade');
@@ -292,8 +296,9 @@ define('jade',{
       var getCompiler;
       if(config.isBuild) {
         fs = require.nodeRequire('fs');
+        var path = require.nodeRequire('path');
         getCompiler = function(cb) {
-          cb(require.nodeRequire('./jade-compiler'));
+          cb(require.nodeRequire(path.join(config.baseUrl, 'jade-compiler')));
         }
         fetchText = function(url, cb) {
           try {
@@ -303,7 +308,7 @@ define('jade',{
           }
         };
       } else{
-        fs = fsXhr;
+        fs = require.nodeRequire ? require.nodeRequire('fs') : fsXhr;
         getCompiler = function(cb) {
           require(['jade-compiler'], function(jadeCompiler) {
             cb(jadeCompiler);
@@ -320,17 +325,24 @@ define('jade',{
           filename: url
         });
         if(!buildMap[name] && config.isBuild) {
-          buildMap[name] = jadeCompiler.compileClient(text, {filename: url});
+          buildMap[name] = patchText(jadeCompiler.compileClient(text, {filename: url}));
         }
-        onload(f);        
+        onload(function(locals, attrs) {
+          return f(attrs || locals);
+        });
       }
-      getCompiler(function(_jadeCompiler) {
-        jadeCompiler = _jadeCompiler;
-        if(jadeCompiler && text) run();
-      });
       fetchText(url, function (err, _text) {
         if(err) throw err;
         text = _text;
+        // allow precompiled templates
+        if(text.match(/^define\(\['jade-runtime']/)) {
+          onload(text);
+          text = null;
+        }
+        if(jadeCompiler && text) run();
+      });
+      getCompiler(function(_jadeCompiler) {
+        jadeCompiler = _jadeCompiler;
         if(jadeCompiler && text) run();
       });
     }
@@ -338,12 +350,14 @@ define('jade',{
 
 })();
 
-define('jade!body', ['jade-runtime'], function(jade){ return function template(locals) {
+define('jade!body', ['jade-runtime'], function(jade){ return function template(locals, attrs) { locals = attrs || locals;
 var buf = [];
 var jade_mixins = {};
 var jade_interp;
 
-buf.push("<h1>Hello world</h1>Hurrah");;return buf.join("");
+buf.push("<h1>basic</h1><div class=\"block1\">Hurrah</div>");
+var a = "ala ma kota";
+buf.push("<h2>footer</h2><p>" + (jade.escape((jade_interp = a) == null ? '' : jade_interp)) + "</p>");;return buf.join("");
 }});
 
 define('main',['require','jade!body','jade'],function(require) {
