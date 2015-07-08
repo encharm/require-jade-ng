@@ -91,10 +91,11 @@ define({
       var jadeCompiler, text;
       function run() {
         var f = jadeCompiler.compile(text, {
-          filename: url
+          filename: url,
+          doctype: 'html'
         });
         if(!buildMap[name] && config.isBuild) {
-          buildMap[name] = patchText(jadeCompiler.compileClient(text, {filename: url}));
+          buildMap[name] = patchText(jadeCompiler.compileClient(text, {filename: url, doctype: 'html'}));
         }
         onload(function(locals, attrs) {
           return f(attrs || locals);
